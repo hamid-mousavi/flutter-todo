@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:provider/provider.dart';
+import 'package:todo/data/repo/Repository.dart';
 import 'package:todo/main.dart';
 import 'package:todo/task.dart';
 
@@ -9,21 +11,16 @@ class EditTaskScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final box = Hive.box<TaskEntity>(boxName);
     final controller = TextEditingController();
     controller.text = task.name;
+    final repository = Provider.of<Repository<TaskEntity>>(context);
 
     return Scaffold(
       appBar: AppBar(),
       floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
             task.name = controller.text;
-            if (task.isInBox) {
-              task.save();
-            } else {
-              box.add(task);
-            }
-
+            repository.updateOrCreate(task);
             Navigator.of(context).pop();
           },
           label: Text('Save')),
@@ -59,7 +56,7 @@ class _PeriorityWidgetState extends State<PeriorityWidget> {
     return Container(
       child: Column(children: [
         ListTile(
-          title: Text('Low'),
+          title: const Text('Low'),
           leading: Radio<Periority>(
             value: Periority.low,
             groupValue: widget.task.periority,
@@ -71,7 +68,7 @@ class _PeriorityWidgetState extends State<PeriorityWidget> {
           ),
         ),
         ListTile(
-          title: Text('medium'),
+          title: const Text('medium'),
           leading: Radio<Periority>(
             value: Periority.medium,
             groupValue: widget.task.periority,
@@ -83,7 +80,7 @@ class _PeriorityWidgetState extends State<PeriorityWidget> {
           ),
         ),
         ListTile(
-          title: Text('high'),
+          title: const Text('high'),
           leading: Radio<Periority>(
             value: Periority.high,
             groupValue: widget.task.periority,

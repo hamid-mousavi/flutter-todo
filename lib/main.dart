@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:provider/provider.dart';
+import 'package:todo/data/database/HiveDataBase.dart';
+import 'package:todo/data/repo/Repository.dart';
 import 'package:todo/task.dart';
 import 'package:todo/ui/theme/themelight.dart';
 
@@ -12,7 +15,11 @@ void main() async {
   Hive.registerAdapter(TaskEntityAdapter());
   Hive.registerAdapter(PeriorityAdapter());
   final box = await Hive.openBox<TaskEntity>(boxName);
-  runApp(const MyApp());
+  runApp(Provider<Repository<TaskEntity>>(
+    create: (context) => Repository<TaskEntity>(
+        datasource: HiveDatabase(box: Hive.box(boxName))),
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {

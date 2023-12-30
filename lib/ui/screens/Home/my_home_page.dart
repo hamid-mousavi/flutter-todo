@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:provider/provider.dart';
+import 'package:todo/data/repo/Repository.dart';
 import 'package:todo/main.dart';
 import 'package:todo/task.dart';
 

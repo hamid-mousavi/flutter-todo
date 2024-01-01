@@ -1,17 +1,31 @@
+import 'package:flutter/material.dart';
 import 'package:todo/data/datasource/DataSource.dart';
 
-class Repository<T> implements IDatasource {
-  final IDatasource _datasource;
+class Repository<T> extends ChangeNotifier implements IDatasource<T> {
+  final IDatasource<T> _datasource;
 
-  Repository({required IDatasource datasource}) : _datasource = datasource;
+  Repository(this._datasource);
   @override
-  @override
-  Future<void> updateOrCreate(data) {
-    return _datasource.updateOrCreate(data);
+  Future<void> updateOrCreate(data) async {
+    await _datasource.updateOrCreate(data);
+    notifyListeners();
   }
 
   @override
-  Future<List> getAll({String searchKey = ''}) {
-    return _datasource.getAll(searchKey: searchKey);
+  Future<List<T>> getAll({String searchKey = ''}) async {
+    final items = await _datasource.getAll(searchKey: searchKey);
+    return items;
+  }
+
+  @override
+  Future<void> delete(T data) async {
+    await _datasource.delete(data);
+    notifyListeners();
+  }
+
+  @override
+  Future<void> deleteAll() async {
+    await _datasource.deleteAll();
+    notifyListeners();
   }
 }

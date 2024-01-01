@@ -8,7 +8,13 @@ class HiveDatabase implements IDatasource<TaskEntity> {
   HiveDatabase({required this.box});
   @override
   Future<List<TaskEntity>> getAll({String searchKey = ''}) async {
-    return box.values.toList();
+    if (searchKey.isEmpty) {
+      return box.values.toList();
+    } else {
+      return box.values
+          .where((element) => element.name.contains(searchKey))
+          .toList();
+    }
   }
 
   @override
@@ -18,5 +24,15 @@ class HiveDatabase implements IDatasource<TaskEntity> {
     } else {
       box.add(data);
     }
+  }
+
+  @override
+  Future<void> delete(TaskEntity data) async {
+    await data.delete();
+  }
+
+  @override
+  Future<void> deleteAll() async {
+    await box.clear();
   }
 }

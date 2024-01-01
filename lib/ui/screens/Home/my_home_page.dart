@@ -37,6 +37,13 @@ class MyHomePage extends StatelessWidget {
           )),
       body: Column(
         children: [
+          TextButton(
+              onPressed: () {
+                final repository =
+                    Provider.of<Repository<TaskEntity>>(context, listen: false);
+                repository.deleteAll();
+              },
+              child: Text('Delete All')),
           TextField(
             controller: searchController,
             onChanged: (value) {
@@ -74,25 +81,22 @@ class TaskItemsListWidget extends StatelessWidget {
     return ValueListenableBuilder<String>(
       valueListenable: searchNotifier,
       builder: (context, value, child) {
-        return ValueListenableBuilder<Box<TaskEntity>>(
-          valueListenable: box.listenable(),
-          builder: (context, box, child) {
-            List<TaskEntity> items;
-            if (searchController.text.isEmpty) {
-              items = box.values.toList();
-            } else {
-              items = box.values
-                  .where(
-                    (element) => element.name.contains(searchController.text),
-                  )
-                  .toList();
-            }
-            return ListView.builder(
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                final TaskEntity task = items[index];
-
-                return TaskItemWidget(task: task);
+        return Consumer<Repository<TaskEntity>>(
+          builder: (context, repository, child) {
+            return FutureBuilder<List<TaskEntity>>(
+              future: repository.getAll(searchKey: searchController.text),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      final TaskEntity task = snapshot.data![index];
+                      return TaskItemWidget(task: task);
+                    },
+                  );
+                } else {
+                  return const CircularProgressIndicator();
+                }
               },
             );
           },
@@ -124,7 +128,9 @@ class _TaskItemWidgetState extends State<TaskItemWidget> {
         ));
       },
       onLongPress: () {
-        widget.task.delete();
+        final repository =
+            Provider.of<Repository<TaskEntity>>(context, listen: false);
+        repository.delete(widget.task);
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

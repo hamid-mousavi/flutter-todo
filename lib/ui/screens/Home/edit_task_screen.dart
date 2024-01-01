@@ -13,12 +13,13 @@ class EditTaskScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = TextEditingController();
     controller.text = task.name;
-    final repository = Provider.of<Repository<TaskEntity>>(context);
 
     return Scaffold(
       appBar: AppBar(),
       floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
+            final repository =
+                Provider.of<Repository<TaskEntity>>(context, listen: false);
             task.name = controller.text;
             repository.updateOrCreate(task);
             Navigator.of(context).pop();

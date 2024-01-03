@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 import 'package:todo/data/repo/Repository.dart';
 import 'package:todo/main.dart';
 import 'package:todo/task.dart';
+import 'package:todo/ui/screens/Home/bloc/task_list_bloc.dart';
 
-import 'edit_task_screen.dart';
+import '../Edit/edit_task_screen.dart';
 
 class MyHomePage extends StatelessWidget {
-  const MyHomePage();
+  const MyHomePage({super.key});
 
   //bool ch = true;
   @override
   Widget build(BuildContext context) {
-    final box = Hive.box<TaskEntity>(boxName);
+    //final box = Hive.box<TaskEntity>(boxName);
 
     final ScrollController controller = ScrollController();
     final TextEditingController searchController = TextEditingController();
-    ValueNotifier<String> searchNotifier = ValueNotifier('');
     return Scaffold(
       appBar: AppBar(title: const Text("Todo List")),
       floatingActionButton: FloatingActionButton(
@@ -39,23 +40,18 @@ class MyHomePage extends StatelessWidget {
         children: [
           TextButton(
               onPressed: () {
-                final repository =
-                    Provider.of<Repository<TaskEntity>>(context, listen: false);
-                repository.deleteAll();
+                context.read<TaskListBloc>().add(TaslistDeleteAll());
               },
               child: Text('Delete All')),
           TextField(
             controller: searchController,
             onChanged: (value) {
-              searchNotifier.value = value;
+              context.read<TaskListBloc>().add(TasklistSearch(value));
             },
           ),
           Expanded(
               child: TaskItemsListWidget(
-                  searchNotifier: searchNotifier,
-                  box: box,
-                  controller: controller,
-                  searchController: searchController)),
+                  controller: controller, searchController: searchController)),
         ],
       ),
     );
@@ -65,40 +61,44 @@ class MyHomePage extends StatelessWidget {
 class TaskItemsListWidget extends StatelessWidget {
   const TaskItemsListWidget({
     super.key,
-    required this.searchNotifier,
-    required this.box,
     required this.controller,
     required this.searchController,
   });
 
-  final ValueNotifier<String> searchNotifier;
-  final Box<TaskEntity> box;
   final ScrollController controller;
   final TextEditingController searchController;
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<String>(
-      valueListenable: searchNotifier,
-      builder: (context, value, child) {
-        return Consumer<Repository<TaskEntity>>(
-          builder: (context, repository, child) {
-            return FutureBuilder<List<TaskEntity>>(
-              future: repository.getAll(searchKey: searchController.text),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return ListView.builder(
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      final TaskEntity task = snapshot.data![index];
-                      return TaskItemWidget(task: task);
-                    },
-                  );
-                } else {
-                  return const CircularProgressIndicator();
-                }
-              },
-            );
+    return Consumer<Repository<TaskEntity>>(
+      builder: (context, model, child) {
+        context.read<TaskListBloc>().add(TasklistStarted());
+        return BlocBuilder<TaskListBloc, TaskListState>(
+          builder: (context, state) {
+            if (state is TaskListSucccess) {
+              final items = state.tasks;
+              return ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final TaskEntity task = items[index];
+                  return TaskItemWidget(task: task);
+                },
+              );
+            } else if (state is TaskListEmpty) {
+              return Container(
+                child: Text('Salam'),
+              );
+            } else if (state is TaskListError) {
+              return Container(
+                child: Text('Error'),
+              );
+            } else if (state is TaskListLoading || state is TaskListInitial) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            } else {
+              return Text('data');
+            }
           },
         );
       },

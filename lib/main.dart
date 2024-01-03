@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 import 'package:todo/data/database/HiveDataBase.dart';
 import 'package:todo/data/repo/Repository.dart';
 import 'package:todo/task.dart';
+import 'package:todo/ui/screens/Home/bloc/task_list_bloc.dart';
 import 'package:todo/ui/theme/themelight.dart';
 
 import 'ui/screens/Home/my_home_page.dart';
@@ -40,7 +42,10 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const MyHomePage(),
+      home: BlocProvider<TaskListBloc>(
+          create: (context) =>
+              TaskListBloc(context.read<Repository<TaskEntity>>()),
+          child: const MyHomePage()),
     );
   }
 }

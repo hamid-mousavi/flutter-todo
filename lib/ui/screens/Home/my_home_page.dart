@@ -1,22 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 import 'package:todo/data/repo/Repository.dart';
-import 'package:todo/main.dart';
 import 'package:todo/task.dart';
+import 'package:todo/ui/screens/Edit/bloc/edit_task_bloc.dart';
 import 'package:todo/ui/screens/Home/bloc/task_list_bloc.dart';
 
 import '../Edit/edit_task_screen.dart';
 
 class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key});
-
-  //bool ch = true;
   @override
   Widget build(BuildContext context) {
-    //final box = Hive.box<TaskEntity>(boxName);
-
     final ScrollController controller = ScrollController();
     final TextEditingController searchController = TextEditingController();
     return Scaffold(
@@ -32,9 +27,13 @@ class MyHomePage extends StatelessWidget {
               },
             ));
           },
-          child: const Text(
-            '+',
-            style: TextStyle(fontSize: 20),
+          child: BlocProvider<EditTaskBloc>(
+            create: (context) =>
+                EditTaskBloc(context.read<Repository<TaskEntity>>()),
+            child: const Text(
+              '+',
+              style: TextStyle(fontSize: 20),
+            ),
           )),
       body: Column(
         children: [
@@ -85,15 +84,13 @@ class TaskItemsListWidget extends StatelessWidget {
                 },
               );
             } else if (state is TaskListEmpty) {
-              return Container(
-                child: Text('Salam'),
-              );
+              return const Text('Empty Task');
             } else if (state is TaskListError) {
               return Container(
                 child: Text('Error'),
               );
             } else if (state is TaskListLoading || state is TaskListInitial) {
-              return Center(
+              return const Center(
                 child: CircularProgressIndicator(),
               );
             } else {
@@ -124,7 +121,10 @@ class _TaskItemWidgetState extends State<TaskItemWidget> {
     return InkWell(
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => EditTaskScreen(task: widget.task),
+          builder: (context) => BlocProvider<EditTaskBloc>(
+              create: (context) =>
+                  EditTaskBloc(context.read<Repository<TaskEntity>>()),
+              child: EditTaskScreen(task: widget.task)),
         ));
       },
       onLongPress: () {

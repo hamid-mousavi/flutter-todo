@@ -8,4 +8,8 @@ class SaveChangeBtn extends EditTaskEvent {
   SaveChangeBtn(this.taskEntity);
 }
 
-class OnPeriorityChange extends EditTaskEvent {}
+class OnPeriorityChange extends EditTaskEvent {
+  final Periority periority;
+
+  OnPeriorityChange(this.periority);
+}

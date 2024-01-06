@@ -1,23 +1,28 @@
 part of 'edit_task_bloc.dart';
 
 @immutable
-sealed class EditTaskState {}
+sealed class EditTaskState {
+  final TaskEntity task;
 
-final class EditTaskInitial extends EditTaskState {}
+  EditTaskState(this.task);
+}
+
+final class EditTaskInitial extends EditTaskState {
+  EditTaskInitial(super.task);
+}
 
 final class EditTaskSucess extends EditTaskState {
-  final TaskEntity taskEntity;
-
-  EditTaskSucess(this.taskEntity);
+  EditTaskSucess(super.task);
 }
 
 final class NewTaskSucess extends EditTaskState {
-  final TaskEntity taskEntity;
-  NewTaskSucess(this.taskEntity);
+  NewTaskSucess(super.task);
 }
 
 final class EditTaskError extends EditTaskState {
-  final String message;
+  EditTaskError(super.task);
+}
 
-  EditTaskError(this.message);
+final class PeriorityChanged extends EditTaskState {
+  PeriorityChanged(super.task);
 }

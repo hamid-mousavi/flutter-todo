@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -14,9 +15,15 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final ScrollController controller = ScrollController();
     final TextEditingController searchController = TextEditingController();
-    return Scaffold(
-      appBar: AppBar(title: const Text("Todo List")),
-      floatingActionButton: FloatingActionButton(
+    final themeData = Theme.of(context);
+    return SafeArea(
+      child: Scaffold(
+        floatingActionButton: FloatingActionButton(
+          child: BlocProvider<EditTaskBloc>(
+            create: (context) => EditTaskBloc(
+                context.read<Repository<TaskEntity>>(), TaskEntity()),
+            child: const Icon(CupertinoIcons.add),
+          ),
           onPressed: () {
             Navigator.of(context).push(MaterialPageRoute(
               builder: (context) {
@@ -27,33 +34,98 @@ class MyHomePage extends StatelessWidget {
               },
             ));
           },
-          child: BlocProvider<EditTaskBloc>(
-            create: (context) =>
-                EditTaskBloc(context.read<Repository<TaskEntity>>()),
-            child: const Text(
-              '+',
-              style: TextStyle(fontSize: 20),
+        ),
+        body: Column(
+          children: [
+            Container(
+              color: themeData.primaryColor,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    const HeaderAppBar(),
+                    const SizedBox(height: 20),
+                    SearchBarWidget(searchController: searchController),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              ),
             ),
-          )),
-      body: Column(
-        children: [
-          TextButton(
-              onPressed: () {
-                context.read<TaskListBloc>().add(TaslistDeleteAll());
-              },
-              child: Text('Delete All')),
-          TextField(
-            controller: searchController,
-            onChanged: (value) {
-              context.read<TaskListBloc>().add(TasklistSearch(value));
-            },
-          ),
-          Expanded(
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Today'),
+                  const SizedBox(width: 5),
+                  TextButton(
+                    onPressed: () {
+                      context.read<TaskListBloc>().add(TaslistDeleteAll());
+                    },
+                    child: const Text('Delete All'),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+                child: Padding(
+              padding: const EdgeInsets.all(8.0),
               child: TaskItemsListWidget(
-                  controller: controller, searchController: searchController)),
-        ],
+                  controller: controller, searchController: searchController),
+            )),
+          ],
+        ),
       ),
     );
+  }
+}
+
+class SearchBarWidget extends StatelessWidget {
+  const SearchBarWidget({
+    super.key,
+    required this.searchController,
+  });
+
+  final TextEditingController searchController;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 35,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: TextField(
+          decoration: const InputDecoration(
+              border: InputBorder.none,
+              prefixIcon: Icon(CupertinoIcons.search)),
+          controller: searchController,
+          onChanged: (value) {
+            context.read<TaskListBloc>().add(TasklistSearch(value));
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class HeaderAppBar extends StatelessWidget {
+  const HeaderAppBar({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('Todo List',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Icon(CupertinoIcons.share),
+        ]);
   }
 }
 
@@ -80,7 +152,10 @@ class TaskItemsListWidget extends StatelessWidget {
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final TaskEntity task = items[index];
-                  return TaskItemWidget(task: task);
+                  return Container(
+                    height: 50,
+                    child: TaskItemWidget(task: task),
+                  );
                 },
               );
             } else if (state is TaskListEmpty) {
@@ -118,12 +193,25 @@ class TaskItemWidget extends StatefulWidget {
 class _TaskItemWidgetState extends State<TaskItemWidget> {
   @override
   Widget build(BuildContext context) {
+    MaterialColor periorityColor = Colors.red;
+    switch (widget.task.periority) {
+      case Periority.low:
+        periorityColor = Colors.purple;
+        break;
+      case Periority.medium:
+        periorityColor = Colors.blue;
+        break;
+      case Periority.high:
+        periorityColor = Colors.red;
+        break;
+      default:
+    }
     return InkWell(
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => BlocProvider<EditTaskBloc>(
-              create: (context) =>
-                  EditTaskBloc(context.read<Repository<TaskEntity>>()),
+              create: (context) => EditTaskBloc(
+                  context.read<Repository<TaskEntity>>(), widget.task),
               child: EditTaskScreen(task: widget.task)),
         ));
       },
@@ -145,8 +233,20 @@ class _TaskItemWidgetState extends State<TaskItemWidget> {
             },
           ),
           Text(widget.task.name),
-          Text(widget.task.periority.toString())
+          PeriorityColor(widget.task, periorityColor)
         ],
+      ),
+    );
+  }
+
+  PeriorityColor(TaskEntity task, MaterialColor periorityColor) {
+    return Container(
+      width: 7,
+      height: 48,
+      decoration: BoxDecoration(
+        color: periorityColor,
+        borderRadius: const BorderRadius.only(
+            topRight: Radius.circular(10), bottomRight: Radius.circular(10)),
       ),
     );
   }

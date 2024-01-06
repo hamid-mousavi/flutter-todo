@@ -14,7 +14,8 @@ class EditTaskScreen extends StatelessWidget {
     controller.text = task.name;
 
     return BlocProvider<EditTaskBloc>(
-      create: (context) => EditTaskBloc(context.read<Repository<TaskEntity>>()),
+      create: (context) =>
+          EditTaskBloc(context.read<Repository<TaskEntity>>(), task),
       child: BlocBuilder<EditTaskBloc, EditTaskState>(
         builder: (context, state) {
           return Scaffold(
@@ -28,7 +29,7 @@ class EditTaskScreen extends StatelessWidget {
                 label: const Text('Save')),
             body: Column(
               children: [
-                PeriorityWidget(task: task),
+                PeriorityWidget(),
                 TextField(
                     decoration: const InputDecoration(
                       hintText: 'Title',
@@ -46,10 +47,7 @@ class EditTaskScreen extends StatelessWidget {
 class PeriorityWidget extends StatefulWidget {
   const PeriorityWidget({
     super.key,
-    required this.task,
   });
-
-  final TaskEntity task;
 
   @override
   State<PeriorityWidget> createState() => _PeriorityWidgetState();
@@ -58,43 +56,47 @@ class PeriorityWidget extends StatefulWidget {
 class _PeriorityWidgetState extends State<PeriorityWidget> {
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      ListTile(
-        title: const Text('Low'),
-        leading: Radio<Periority>(
-          value: Periority.low,
-          groupValue: widget.task.periority,
-          onChanged: (value) {
-            setState(() {
-              widget.task.periority = value!;
-            });
-          },
-        ),
-      ),
-      ListTile(
-        title: const Text('medium'),
-        leading: Radio<Periority>(
-          value: Periority.medium,
-          groupValue: widget.task.periority,
-          onChanged: (value) {
-            setState(() {
-              widget.task.periority = value!;
-            });
-          },
-        ),
-      ),
-      ListTile(
-        title: const Text('high'),
-        leading: Radio<Periority>(
-          value: Periority.high,
-          groupValue: widget.task.periority,
-          onChanged: (value) {
-            setState(() {
-              widget.task.periority = value!;
-            });
-          },
-        ),
-      ),
-    ]);
+    return BlocBuilder<EditTaskBloc, EditTaskState>(
+      builder: (context, state) {
+        return Column(children: [
+          ListTile(
+            title: const Text('Low'),
+            leading: Radio<Periority>(
+              value: Periority.low,
+              groupValue: state.task.periority,
+              onChanged: (value) {
+                setState(() {
+                  context.read<EditTaskBloc>().add(OnPeriorityChange(value!));
+                });
+              },
+            ),
+          ),
+          ListTile(
+            title: const Text('medium'),
+            leading: Radio<Periority>(
+              value: Periority.medium,
+              groupValue: state.task.periority,
+              onChanged: (value) {
+                setState(() {
+                  context.read<EditTaskBloc>().add(OnPeriorityChange(value!));
+                });
+              },
+            ),
+          ),
+          ListTile(
+            title: const Text('high'),
+            leading: Radio<Periority>(
+              value: Periority.high,
+              groupValue: state.task.periority,
+              onChanged: (value) {
+                setState(() {
+                  context.read<EditTaskBloc>().add(OnPeriorityChange(value!));
+                });
+              },
+            ),
+          ),
+        ]);
+      },
+    );
   }
 }
